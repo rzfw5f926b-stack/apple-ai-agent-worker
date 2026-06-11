@@ -91,14 +91,16 @@ def build_prompt_from_messages(messages: list[dict]) -> tuple[str, str]:
 
 async def stream_generate(session: fm.LanguageModelSession, prompt: str) -> AsyncIterator[str]:
     """Yield Ollama-format streaming chunks."""
-    full = ""
+    prev = ""
     async for chunk in session.stream_response(prompt):
-        text = str(chunk)
-        full += text
+        delta = chunk[len(prev):]
+        prev = chunk
+        if not delta:
+            continue
         yield json.dumps({
             "model": MODEL_NAME,
             "created_at": now_iso(),
-            "response": text,
+            "response": delta,
             "done": False,
         }) + "\n"
 
@@ -109,20 +111,22 @@ async def stream_generate(session: fm.LanguageModelSession, prompt: str) -> Asyn
         "done": True,
         "total_duration": 0,
         "prompt_eval_count": len(prompt.split()),
-        "eval_count": len(full.split()),
+        "eval_count": len(prev.split()),
     }) + "\n"
 
 
 async def stream_chat(session: fm.LanguageModelSession, prompt: str) -> AsyncIterator[str]:
     """Yield Ollama chat-format streaming chunks."""
-    full = ""
+    prev = ""
     async for chunk in session.stream_response(prompt):
-        text = str(chunk)
-        full += text
+        delta = chunk[len(prev):]
+        prev = chunk
+        if not delta:
+            continue
         yield json.dumps({
             "model": MODEL_NAME,
             "created_at": now_iso(),
-            "message": {"role": "assistant", "content": text},
+            "message": {"role": "assistant", "content": delta},
             "done": False,
         }) + "\n"
 
@@ -132,20 +136,24 @@ async def stream_chat(session: fm.LanguageModelSession, prompt: str) -> AsyncIte
         "message": {"role": "assistant", "content": ""},
         "done": True,
         "prompt_eval_count": len(prompt.split()),
-        "eval_count": len(full.split()),
+        "eval_count": len(prev.split()),
     }) + "\n"
 
 
 async def stream_openai(session: fm.LanguageModelSession, prompt: str, req_id: str) -> AsyncIterator[str]:
     """Yield OpenAI SSE-format streaming chunks."""
+    prev = ""
     async for chunk in session.stream_response(prompt):
-        text = str(chunk)
+        delta = chunk[len(prev):]
+        prev = chunk
+        if not delta:
+            continue
         data = {
             "id": req_id,
             "object": "chat.completion.chunk",
             "created": now_ts(),
             "model": MODEL_NAME,
-            "choices": [{"index": 0, "delta": {"content": text}, "finish_reason": None}],
+            "choices": [{"index": 0, "delta": {"content": delta}, "finish_reason": None}],
         }
         yield f"data: {json.dumps(data)}\n\n"
 
@@ -177,7 +185,7 @@ async def list_models():
                 "format": "apple-npu",
                 "family": "apple-fm",
                 "families": ["apple-fm"],
-                "parameter_size": "3B",
+                "parameter_size": "20B-MoE",
                 "quantization_level": "mixed-2-4bit",
             },
         }]
