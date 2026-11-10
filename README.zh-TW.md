@@ -30,13 +30,13 @@
 | **裝置端**（`fm` CLI） | `/usr/bin/fm respond` | 短答約 0.2 s | context 8192 tok（含輸出） | 保證 JSON 格式（`--schema`）、看圖、QR／條碼、離線或私密資料 |
 | 裝置端（SDK／HTTP） | `apple-fm-sdk`、[`server.py`](docs/server.md) | 跟 `fm` 差不多 | 同上 | 工具需要 Ollama／OpenAI 相容 API 時 |
 
-雲端模型**不能**從 `fm` 呼叫，只能透過捷徑。Apple 官方說兩個雲端模型都有[每日用量上限](https://support.apple.com/zh-tw/127901)，但沒給數字，所以批次工作一定要能退回裝置端。
+agent 或背景程式要用雲端模型，**只能透過捷徑**。`fm respond --model pcc` 在 Terminal app 裡手動執行可以，但從 agent 的 shell 執行會出現 `Private Cloud Compute is not available in this context. Please use the Terminal app.`。Apple 官方說兩個雲端模型都有[每日用量上限](https://support.apple.com/zh-tw/127901)，但沒給數字，所以批次工作一定要能退回裝置端。
 
 ## 準備
 
 需求：macOS 27 以上、Apple Silicon、已開啟 Apple Intelligence；雲端模型要有網路。
 
-**1. 自己建兩個捷徑。** 雲端模型沒有自己的指令列工具，要從程式呼叫，唯一的方法是自己在「捷徑」app 建一個捷徑，再用 `shortcuts run "<捷徑名稱>"` 執行它。這個 repo 的範例和腳本都假設捷徑叫下面這兩個名字：
+**1. 自己建兩個捷徑。** agent 不能用 `fm --model pcc`（見上），要呼叫雲端模型，唯一的方法是自己在「捷徑」app 建一個捷徑，再用 `shortcuts run "<捷徑名稱>"` 執行它。這個 repo 的範例和腳本都假設捷徑叫下面這兩個名字：
 
 | 捷徑名稱 | 「使用模型」動作選的模型 |
 |---|---|

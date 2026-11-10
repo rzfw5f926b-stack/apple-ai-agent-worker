@@ -30,13 +30,13 @@ The pattern that pays off: let the Apple model **compress raw material** (summar
 | **On-device** (`fm` CLI) | `/usr/bin/fm respond` | ~0.2 s short answers | 8192-token context including output | Guaranteed JSON (`--schema`), images, QR/barcodes, offline or private data |
 | On-device (SDK / HTTP) | `apple-fm-sdk`, [`server.py`](docs/server.md) | similar to `fm` | same | When a tool needs an Ollama / OpenAI-compatible API |
 
-The cloud models are **not** reachable from `fm` — only through Shortcuts. Apple documents [daily usage limits](https://support.apple.com/en-us/127901) for both cloud models without giving numbers, so batch jobs must be able to fall back to on-device.
+From an agent or background process, the cloud models are reachable **only through Shortcuts**. `fm respond --model pcc` works when you run it by hand in Terminal.app, but from an agent's shell it fails with `Private Cloud Compute is not available in this context. Please use the Terminal app.` Apple documents [daily usage limits](https://support.apple.com/en-us/127901) for both cloud models without giving numbers, so batch jobs must be able to fall back to on-device.
 
 ## Setup
 
 Requirements: macOS 27+, Apple Silicon, Apple Intelligence turned on, network access for the cloud models.
 
-**1. Make two shortcuts.** The cloud models have no command-line interface of their own; the only way to reach them from a script is a shortcut you build yourself and then run with `shortcuts run "<name>"`. Everything in this repo assumes these two names:
+**1. Make two shortcuts.** An agent can't use `fm --model pcc` (see above), so the only way for it to reach the cloud models is a shortcut you build yourself and then run with `shortcuts run "<name>"`. Everything in this repo assumes these two names:
 
 | Shortcut name | Model in the "Use Model" action |
 |---|---|
